@@ -21,7 +21,39 @@ function setup (io){
 			.run();
 			})
 		socket.emit('getPlants',plants);
-		socket.emit('getDays',5);
+		//socket.emit('getDays',5);
+		
+		r.db('webapp').table('days')
+		.orderBy({index: r.desc('datetime')})
+	    .limit(1)
+	    .changes({includeInitial:true})("new_val")
+	    .run({cursor:true}, handleChange0);
+	    function handleChange0(err,cursor){
+		   if(err){
+			   console.log(err);
+		   }
+		   else{
+			   if(cursor){
+				   cursor.each(function(err,days){
+					   if(err){
+						   console.log(err);
+					   }
+					   else{
+						   console.log(days); 
+						   socket.emit('getDays',days.days);
+					   }
+				   });
+			   }
+		   }
+		  /* socket.on('disconnect', stopCursor);
+		   function stopCursor () {
+			   if(cursor){
+				   cursor.close();
+			   }
+			   socket.removeListener('disconnect',stopCursor);
+		   }*/
+		}
+		
 		r.db('webapp').table('readings')
 		.orderBy({index: r.desc('datetime')})
 		.limit(1)
@@ -69,7 +101,7 @@ function setup (io){
 						   console.log(err);
 					   }
 					   else {
-						   console.log(data); 
+						   //console.log(data); 
 						   socket.emit('getData',data);
 					   }
 					   
